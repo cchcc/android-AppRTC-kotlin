@@ -3,6 +3,8 @@ package cchcc.apprtc
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.widget.EditText
+import android.widget.LinearLayout
+import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -48,10 +50,23 @@ class MainActivity : AppCompatActivity() {
     private var appRTC: AppRTC? = null
 
     private fun showInputRoomNameDialog() {
-        val et_roomName = EditText(this)
+        val tv_roomNameDesc = TextView(this).apply {
+            text = "5 or more characters and include only letters, numbers, underscore and hyphen"
+        }
+        val et_roomName = EditText(this).apply {
+            hint = "room name"
+        }
+
+        val view = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(50, 0, 50, 0)
+            addView(tv_roomNameDesc)
+            addView(et_roomName)
+        }
+
         AlertDialog.Builder(this)
-            .setTitle("Please enter a room name.\n5 or more characters and include only letters, numbers, underscore and hyphen")
-            .setView(et_roomName)
+            .setTitle("Please enter a room name.")
+            .setView(view)
             .setPositiveButton("Join") { _, _ ->
                 val roomName = et_roomName.text.toString()
 
