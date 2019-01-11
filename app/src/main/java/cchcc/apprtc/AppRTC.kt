@@ -2,7 +2,9 @@ package cchcc.apprtc
 
 import android.content.Context
 import android.media.AudioManager
+import android.net.Uri
 import android.util.Log
+import cchcc.apprtc.rtsp360.Video360Capturer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -55,7 +57,7 @@ class AppRTC(
 
     private var disconnect: (() -> Unit)? = null
 
-    fun start(roomName: String) {
+    fun start(roomName: String, rtspUri: Uri) {
         svr_video_full.init(rootEglBase.eglBaseContext, null)
         svr_video_full.setScalingType(RendererCommon.ScalingType.SCALE_ASPECT_FILL)
         svr_video_full.setEnableHardwareScaler(false)
@@ -235,29 +237,31 @@ class AppRTC(
 
             }
 
-            videoCapturer = mainScope.async {
-                Camera1Enumerator(false).let videoCapturer@{
-                    for (deviceName in it.deviceNames) {
-                        if (it.isFrontFacing(deviceName)) {
-                            val videoCapturer = it.createCapturer(deviceName, null)
-                            if (videoCapturer != null) {
-                                return@videoCapturer videoCapturer
-                            }
-                        }
-                    }
+//            videoCapturer = mainScope.async {
+//                Camera1Enumerator(false).let videoCapturer@{
+//                    for (deviceName in it.deviceNames) {
+//                        if (it.isFrontFacing(deviceName)) {
+//                            val videoCapturer = it.createCapturer(deviceName, null)
+//                            if (videoCapturer != null) {
+//                                return@videoCapturer videoCapturer
+//                            }
+//                        }
+//                    }
+//
+//                    for (deviceName in it.deviceNames) {
+//                        if (!it.isFrontFacing(deviceName)) {
+//                            val videoCapturer = it.createCapturer(deviceName, null)
+//                            if (videoCapturer != null) {
+//                                return@videoCapturer videoCapturer
+//                            }
+//                        }
+//                    }
+//
+//                    throw Exception("failed to create CameraVideoCapturer")
+//                }
+//            }.await()
 
-                    for (deviceName in it.deviceNames) {
-                        if (!it.isFrontFacing(deviceName)) {
-                            val videoCapturer = it.createCapturer(deviceName, null)
-                            if (videoCapturer != null) {
-                                return@videoCapturer videoCapturer
-                            }
-                        }
-                    }
-
-                    throw Exception("failed to create CameraVideoCapturer")
-                }
-            }.await()
+            videoCapturer = Video360Capturer(rtspUri)
 
 
             peerConnectionFactory.setVideoHwAccelerationOptions(rootEglBase.eglBaseContext, rootEglBase.eglBaseContext)

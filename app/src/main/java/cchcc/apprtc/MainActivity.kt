@@ -1,6 +1,7 @@
 package cchcc.apprtc
 
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
 import android.widget.EditText
 import android.widget.LinearLayout
@@ -57,11 +58,20 @@ class MainActivity : AppCompatActivity() {
             hint = "room name"
         }
 
+        val tv_rtspDesc = TextView(this).apply {
+            text = "rtsp url"
+        }
+        val et_rtsp = EditText(this).apply {
+            setText("rtsp://184.72.239.149/vod/map:BigBuckBunny_175k.mov")
+        }
+
         val view = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(50, 0, 50, 0)
             addView(tv_roomNameDesc)
             addView(et_roomName)
+            addView(tv_rtspDesc)
+            addView(et_rtsp)
         }
 
         AlertDialog.Builder(this)
@@ -72,7 +82,9 @@ class MainActivity : AppCompatActivity() {
 
                 appRTC = AppRTC(this, svr_video_full, svr_video_pip)
                 bt_end.setOnClickListener { appRTC!!.end() }
-                appRTC!!.start(roomName)
+
+                val url = et_rtsp.text.toString()
+                appRTC!!.start(roomName, Uri.parse(url))
             }
             .setNegativeButton("Finish") { _, _ -> finish() }
             .show()
