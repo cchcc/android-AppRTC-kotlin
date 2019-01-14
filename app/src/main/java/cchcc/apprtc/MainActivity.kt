@@ -11,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import kotlinx.android.synthetic.main.activity_main.*
+import org.webrtc.RendererCommon
 
 class MainActivity : AppCompatActivity() {
 
@@ -33,6 +34,7 @@ class MainActivity : AppCompatActivity() {
         } else {
             ActivityCompat.requestPermissions(this, notGrantedPermissions.toTypedArray(), 1)
         }
+
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
@@ -41,14 +43,13 @@ class MainActivity : AppCompatActivity() {
             val allGranted = grantResults.all { it == PackageManager.PERMISSION_GRANTED }
             if (allGranted) {
                 showInputRoomNameDialog()
-            }
-            else {
+            } else {
                 finish()
             }
         }
     }
 
-    private var appRTC: AppRTC? = null
+    private val appRTC: AppRTC by lazy { AppRTC(this, svr_video_full, svr_video_pip) }
 
     private fun showInputRoomNameDialog() {
         val tv_roomNameDesc = TextView(this).apply {
@@ -62,7 +63,7 @@ class MainActivity : AppCompatActivity() {
             text = "rtsp url"
         }
         val et_rtsp = EditText(this).apply {
-            setText("rtsp://184.72.239.149/vod/map:BigBuckBunny_175k.mov")
+            setText("rtsp://184.72.239.149/vod/mp4:BigBuckBunny_175k.mov")
         }
 
         val view = LinearLayout(this).apply {
@@ -80,11 +81,12 @@ class MainActivity : AppCompatActivity() {
             .setPositiveButton("Join") { _, _ ->
                 val roomName = et_roomName.text.toString()
 
-                appRTC = AppRTC(this, svr_video_full, svr_video_pip)
+
                 bt_end.setOnClickListener { appRTC!!.end() }
 
                 val url = et_rtsp.text.toString()
-                appRTC!!.start(roomName, Uri.parse(url))
+
+                appRTC.start(roomName, Uri.parse(url))
             }
             .setNegativeButton("Finish") { _, _ -> finish() }
             .show()

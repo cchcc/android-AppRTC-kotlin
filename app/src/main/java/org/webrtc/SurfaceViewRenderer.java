@@ -13,6 +13,7 @@ package org.webrtc;
 import android.content.Context;
 import android.content.res.Resources.NotFoundException;
 import android.graphics.Point;
+import android.opengl.GLSurfaceView;
 import android.os.Looper;
 import android.util.AttributeSet;
 import android.view.SurfaceHolder;

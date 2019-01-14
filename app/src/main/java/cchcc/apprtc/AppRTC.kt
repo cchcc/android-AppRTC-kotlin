@@ -2,9 +2,9 @@ package cchcc.apprtc
 
 import android.content.Context
 import android.media.AudioManager
+import android.media.MediaPlayer
 import android.net.Uri
 import android.util.Log
-import cchcc.apprtc.rtsp360.Video360Capturer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -23,7 +23,7 @@ class AppRTC(
     , val svr_video_full: SurfaceViewRenderer
     , val svr_video_pip: SurfaceViewRenderer
 ) {
-    private val rootEglBase = EglBase.create()
+    val rootEglBase = EglBase.create()
 
     class ProxyVideoSink : VideoSink {
         var target: VideoSink? = null
@@ -261,7 +261,10 @@ class AppRTC(
 //                }
 //            }.await()
 
-            videoCapturer = Video360Capturer(rtspUri)
+            videoCapturer = mainScope.async {
+                val mediaPlayer = MediaPlayer.create(svr_video_full.context, rtspUri)
+                MediaPlayerCapturer(mediaPlayer)
+            }.await()
 
 
             peerConnectionFactory.setVideoHwAccelerationOptions(rootEglBase.eglBaseContext, rootEglBase.eglBaseContext)
@@ -399,7 +402,7 @@ class AppRTC(
 
                     if (localSdp != null)
                         return
-                    val sd = preferCodec(sdp.description, "VP9", false)
+                    val sd = preferCodec(sdp.description, "H264", false)
                     localSdp = SessionDescription(sdp.type, sd)
                     peerConnection.setLocalDescription(this, localSdp)
                 }

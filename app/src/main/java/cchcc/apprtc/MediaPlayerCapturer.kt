@@ -1,8 +1,8 @@
-package cchcc.apprtc.rtsp360
+package cchcc.apprtc
 
 import android.content.Context
 import android.media.MediaPlayer
-import android.net.Uri
+import android.util.Log
 import android.view.Surface
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -12,12 +12,10 @@ import org.webrtc.SurfaceTextureHelper
 import org.webrtc.VideoCapturer
 import org.webrtc.VideoFrame
 
-class Video360Capturer(val uri: Uri) : VideoCapturer {
+class MediaPlayerCapturer(private val mediaPlayer: MediaPlayer) : VideoCapturer {
     private lateinit var applicationContext: Context
     private lateinit var surfaceTextureHelper: SurfaceTextureHelper
     private lateinit var capturerObserver: VideoCapturer.CapturerObserver
-
-    private lateinit var mediaPlayer: MediaPlayer
 
     override fun initialize(
         surfaceTextureHelper: SurfaceTextureHelper,
@@ -30,12 +28,11 @@ class Video360Capturer(val uri: Uri) : VideoCapturer {
     }
 
     override fun startCapture(width: Int, height: Int, framerate: Int) {
+        Log.d("capturer", "startCapture")
 
         // set surface
-        mediaPlayer = MediaPlayer.create(applicationContext, uri)
         surfaceTextureHelper.surfaceTexture.setDefaultBufferSize(width, height)
         val surface = Surface(surfaceTextureHelper.surfaceTexture)
-
         mediaPlayer.setSurface(surface)
         mediaPlayer.isLooping = true
         mediaPlayer.start()
@@ -43,7 +40,7 @@ class Video360Capturer(val uri: Uri) : VideoCapturer {
         capturerObserver.onCapturerStarted(true)
         surfaceTextureHelper.startListening { oesTextureId, transformMatrix, timestampNs ->
             val buffer = surfaceTextureHelper.createTextureBuffer(
-                width, height
+                mediaPlayer.videoWidth, mediaPlayer.videoHeight
                 , RendererCommon.convertMatrixToAndroidGraphicsMatrix(transformMatrix)
             )
             val frame = VideoFrame(buffer,0, timestampNs)
@@ -53,17 +50,8 @@ class Video360Capturer(val uri: Uri) : VideoCapturer {
         }
     }
 
-    override fun stopCapture() {
-        CoroutineScope(Dispatchers.Main).launch {
-            surfaceTextureHelper.stopListening()
-            capturerObserver.onCapturerStopped()
-
-            mediaPlayer.stop()
-        }
-    }
-
     override fun changeCaptureFormat(width: Int, height: Int, framerate: Int) {
-
+        Log.d("capturer", "changeCaptureFormat")
         mediaPlayer.stop()
 
         // set surface
@@ -73,6 +61,18 @@ class Video360Capturer(val uri: Uri) : VideoCapturer {
         mediaPlayer.setSurface(surface)
         mediaPlayer.start()
     }
+
+    override fun stopCapture() {
+        Log.d("capturer", "stopCapture")
+        CoroutineScope(Dispatchers.Main).launch {
+            surfaceTextureHelper.stopListening()
+            capturerObserver.onCapturerStopped()
+
+            mediaPlayer.stop()
+        }
+    }
+
+
 
     override fun dispose() {
         mediaPlayer.release()
